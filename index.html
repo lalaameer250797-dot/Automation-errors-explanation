@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Automation Error Explainer</title>
+  <style>
+    body { font-family: Arial, sans-serif; max-width: 880px; margin: 40px auto; padding: 0 16px; }
+    label { display:block; margin-top: 14px; font-weight: 600; }
+    textarea, select, input { width: 100%; padding: 10px; margin-top: 6px; font-size: 14px; }
+    button { margin-top: 16px; padding: 10px 14px; font-size: 15px; cursor: pointer; }
+    .box { margin-top: 18px; padding: 14px; border: 1px solid #ddd; white-space: pre-wrap; }
+    .muted { color: #666; font-size: 13px; margin-top: 6px; }
+  </style>
+</head>
+<body>
+  <h1>Automation Error Explainer</h1>
+  <p class="muted">Paste your Zapier/n8n/Make error and get a clear explanation + fix steps.</p>
+
+  <label for="tool">Tool</label>
+  <select id="tool">
+    <option value="unknown">Other / Unknown</option>
+    <option value="zapier">Zapier</option>
+    <option value="n8n">n8n</option>
+    <option value="make">Make</option>
+    <option value="pabbly">Pabbly</option>
+  </select>
+
+  <label for="error">Error (required)</label>
+  <textarea id="error" rows="6" placeholder='Example: "Request failed with status code 401"'></textarea>
+
+  <label for="context">Context (optional)</label>
+  <textarea id="context" rows="4" placeholder="What were you trying to do? Which app/API? What step?"></textarea>
+
+  <button id="btn">Explain error</button>
+
+  <div id="out" class="box" style="display:none;"></div>
+
+  <script>
+    // 🔴 Replace this with your *production* n8n webhook URL:
+    const WEBHOOK_URL = "https://autofix.app.n8n.cloud/webhook/f8bcfe85-ae51-4b9c-8206-7c5b869aef48";
+
+    const btn = document.getElementById("btn");
+    const out = document.getElementById("out");
+
+    btn.addEventListener("click", async () => {
+      const tool = document.getElementById("tool").value;
+      const error = document.getElementById("error").value.trim();
+      const context = document.getElementById("context").value.trim();
+
+      out.style.display = "block";
+      out.textContent = "Working...";
+
+      if (!error) {
+        out.textContent = "Please paste an error message first.";
+        return;
+      }
+
+      try {
+        const resp = await fetch(WEBHOOK_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ tool, error, context })
+        });
+
+        const data = await resp.json();
+
+        if (!data.ok) {
+          out.textContent = "Error: " + (data.message || data.result || "Unknown error");
+          return;
+        }
+
+        out.textContent = data.result || "No result returned.";
+      } catch (e) {
+        out.textContent = "Request failed: " + e.message;
+      }
+    });
+  </script>
+</body>
+</html>
