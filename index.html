@@ -63,7 +63,7 @@
           body: JSON.stringify({ tool, error, context })
         });
 
-        const data = await resp.json();
+        const [data] = await resp.json();
         console.log(data);
         
 
