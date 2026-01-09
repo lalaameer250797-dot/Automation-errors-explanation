@@ -64,6 +64,8 @@
         });
 
         const data = await resp.json();
+        console.log(data);
+        
 
         if (!data.ok) {
           out.textContent = "Error: " + (data.message || data.result || "Unknown error");
